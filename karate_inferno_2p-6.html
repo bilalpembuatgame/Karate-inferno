@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🔥 KARATE INFERNO — 2 PLAYER</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#160000;color:#fff;touch-action:none}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden;background:
+radial-gradient(circle at 50% 55%,rgba(255,90,0,.35),transparent 35%),
+linear-gradient(#180000,#4a0800 55%,#120000)}
+#game:before{content:"";position:absolute;inset:0;background:
+radial-gradient(ellipse at 10% 80%,#ff4b00 0 2%,transparent 9%),
+radial-gradient(ellipse at 90% 75%,#ffb000 0 2%,transparent 9%),
+repeating-linear-gradient(100deg,transparent 0 30px,rgba(255,80,0,.13) 31px 34px);animation:heat 1.8s infinite alternate}
+@keyframes heat{to{transform:scale(1.03);filter:brightness(1.2)}}
+.flame{position:absolute;bottom:-30px;width:80px;height:170px;background:linear-gradient(#fff000,#ff5a00 45%,#c00 80%,transparent);clip-path:polygon(50% 0,70% 25%,60% 42%,90% 65%,70% 100%,20% 100%,0 70%,28% 50%,20% 28%);filter:blur(2px);opacity:.8;animation:flame .7s infinite alternate;z-index:1}
+@keyframes flame{to{height:210px;transform:scaleX(.8)}}
+.arena{position:absolute;left:0;right:0;bottom:0;height:43%;background:linear-gradient(#351000,#100400);border-top:4px solid #ff6a00;box-shadow:0 -10px 30px #ff3c00;z-index:2}
+#hud{position:absolute;top:12px;left:3%;right:3%;z-index:20;display:grid;grid-template-columns:1fr 90px 1fr;gap:12px;align-items:center}
+.name{font-size:clamp(16px,3vw,25px);font-weight:900;text-shadow:0 2px 5px #000}
+#pName{text-align:left;color:#5eeaff}.aiName{text-align:right;color:#ff7676}
+.bar{height:24px;background:#250000;border:2px solid #fff;border-radius:20px;overflow:hidden;box-shadow:0 0 12px #f40}
+.hp{height:100%;width:100%;background:linear-gradient(90deg,#00ff66,#cfff00,#ff8c00);transition:width .12s linear}
+#aiHP{float:right;background:linear-gradient(90deg,#ff3500,#ffcf00,#ff3500)}
+#vs{text-align:center;font-size:28px;font-weight:900;color:#ffbf00;text-shadow:0 0 15px #ff3000}
+#timer{font-size:22px;text-align:center;margin-top:4px}
+.fighter{position:absolute;bottom:24%;width:120px;height:210px;z-index:10;transition:transform .08s}
+#player{left:22%}#enemy{right:22%;transform:scaleX(-1)}
+.body{position:absolute;left:35px;top:55px;width:52px;height:105px;background:linear-gradient(90deg,#fff,#bbb);border-radius:20px 20px 12px 12px;box-shadow:0 0 15px #fff5}
+.enemyBody{background:linear-gradient(90deg,#242424,#090909);box-shadow:0 0 15px #f33}
+.head{position:absolute;left:44px;top:15px;width:40px;height:45px;border-radius:50%;background:#b86e45;border:3px solid #3b1408}
+.head:after{content:"";position:absolute;left:-2px;top:-7px;width:44px;height:17px;background:#111;border-radius:50% 50% 20% 20%}
+.belt{position:absolute;left:32px;top:125px;width:58px;height:10px;background:#111}
+.arm,.leg{position:absolute;background:#d39a70;border-radius:15px;transform-origin:top center}
+.arm{top:68px;width:18px;height:72px}.arm.a1{left:22px;transform:rotate(35deg)}.arm.a2{left:88px;transform:rotate(-55deg)}
+.leg{top:145px;width:22px;height:75px}.leg.l1{left:36px;transform:rotate(12deg)}.leg.l2{left:70px;transform:rotate(-18deg)}
+.enemyBody~.arm,.enemyBody~.leg{background:#a85d3c}
+#player.hit,#enemy.hit{animation:hit .22s}
+@keyframes hit{50%{transform:translateX(-18px) rotate(-5deg)}}
+#enemy{animation:idle 1s ease-in-out infinite alternate}
+#player{animation:idle 1.1s ease-in-out infinite alternate}
+@keyframes idle{to{translate:0 -3px}}
+.label{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);font-weight:900;font-size:17px;white-space:nowrap;text-shadow:0 2px 5px #000}
+#controls{position:absolute;bottom:15px;left:0;right:0;z-index:30;display:flex;justify-content:space-between;padding:0 4%}
+.pad{display:flex;gap:10px;align-items:center}
+button{font:inherit;color:#fff;border:2px solid #ff9b55;background:rgba(40,5,0,.75);box-shadow:0 0 12px #f40;border-radius:18px;user-select:none}
+.move{width:64px;height:64px;font-size:28px}.attack{width:74px;height:64px;font-size:15px;font-weight:900}
+button:active{transform:scale(.93);background:#8c2600}
+#menu{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,0,0,.9)}
+.panel{width:min(92%,430px);padding:25px;border:2px solid #ff6b00;border-radius:24px;background:linear-gradient(#250500,#0e0200);box-shadow:0 0 35px #f30;text-align:center}
+h1{font-size:clamp(30px,8vw,48px);color:#ff9d00;text-shadow:0 0 18px #f30;margin-bottom:15px}
+input,select{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:2px solid #803000;background:#170400;color:#fff;font-size:17px}
+.start{width:100%;padding:14px;margin-top:10px;font-weight:900;font-size:20px;background:linear-gradient(90deg,#d32b00,#ff9d00)}
+#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);z-index:25;font-size:42px;font-weight:900;color:#fff000;text-shadow:0 0 20px #f30;opacity:0;pointer-events:none}
+@keyframes pop{0%{opacity:0;transform:translateX(-50%) scale(.5)}40%,75%{opacity:1;transform:translateX(-50%) scale(1.15)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="game">
+<div class="flame" style="left:4%"></div><div class="flame" style="left:27%;animation-delay:.2s"></div><div class="flame" style="left:54%;animation-delay:.4s"></div><div class="flame" style="left:82%;animation-delay:.1s"></div>
+<div class="arena"></div>
+<div id="hud">
+ <div><div class="name" id="pName">PLAYER</div><div class="bar"><div class="hp" id="pHP"></div></div></div>
+ <div><div id="vs">VS</div><div id="timer">60</div></div>
+ <div><div class="name aiName" id="aiName">COMPUTER</div><div class="bar"><div class="hp" id="aiHP"></div></div></div>
+</div>
+<div id="message"></div>
+<div id="player" class="fighter">
+ <div class="head"></div><div class="body"></div><div class="belt"></div><div class="arm a1"></div><div class="arm a2"></div><div class="leg l1"></div><div class="leg l2"></div><div class="label" id="playerLabel">PLAYER</div>
+</div>
+<div id="enemy" class="fighter">
+ <div class="head"></div><div class="body enemyBody"></div><div class="belt"></div><div class="arm a1"></div><div class="arm a2"></div><div class="leg l1"></div><div class="leg l2"></div><div class="label" id="enemyLabel">CPU</div>
+</div>
+<div id="controls">
+ <div class="pad"><button class="move" id="left">◀</button><button class="move" id="right">▶</button></div>
+ <div class="pad"><button class="attack" id="punch">👊<br>PUNCH</button><button class="attack" id="kick">🦵<br>KICK</button><button class="attack" id="special">🔥<br>SPECIAL</button><button class="attack" id="jump">⬆️<br>LOMPAT</button><button class="attack" id="block">🛡️<br>BLOCK</button></div>
+</div>
+<div id="menu">
+ <div class="panel">
+  <h1>🔥 KARATE INFERNO</h1>
+  <p>Masukkan nama dan pilih gaya gerakanmu.</p>
+  <input id="nameInput" maxlength="14" placeholder="Nama kamu">
+  <select id="styleInput"><option value="Karate">Karate</option><option value="Ninja">Ninja</option><option value="Kick Master">Kick Master</option><option value="Dragon">Dragon</option></select>
+  <select id="difficultyInput">
+   <option value="easy">🟢 MUDAH</option>
+   <option value="medium" selected>🟡 SEDANG</option>
+   <option value="hard">🔴 SUSAH</option>
+  </select>
+  <button class="start" id="start">MULAI PERTARUNGAN</button>
+ </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let running=false,playerHP=100,enemyHP=100,time=60,style="Karate",difficulty="medium";
+let block=false,lastAttack=0,aiTimer=0,lastCpuAttack=0;
+let playerX=22,playerY=0,vy=0,jumping=false;
+let enemyX=68,enemyY=0,enemyVy=0,enemyJumping=false;
+
+const audio=window.AudioContext||window.webkitAudioContext;
+let ctx;
+
+function sound(f=300,d=.08,type="sine"){
+ if(!ctx)return;
+ let o=ctx.createOscillator(),g=ctx.createGain();
+ o.type=type;o.frequency.value=f;g.gain.value=.08;
+ o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+d);
+}
+function show(text){
+ const m=$("message");
+ m.textContent=text;m.style.animation="none";void m.offsetWidth;
+ m.style.animation="pop .8s forwards";
+}
+function update(){
+ $("pHP").style.width=playerHP+"%";
+ $("aiHP").style.width=enemyHP+"%";
+ $("timer").textContent=time;
+}
+
+function syncPlayer(){
+ const p=$("player");
+ p.style.left=playerX+"%";
+ p.style.bottom=(24+playerY)+"%";
+ p.style.transform="translateZ(0)";
+}
+function syncEnemy(){
+ const e=$("enemy");
+ e.style.left=enemyX+"%";
+ e.style.bottom=(24+enemyY)+"%";
+ e.style.transform="scaleX(-1) translateZ(0)";
+}
+
+function startGame(){
+ ctx=ctx||new audio();
+ if(ctx.state==="suspended")ctx.resume();
+
+ const n=$("nameInput").value.trim()||"PLAYER";
+ style=$("styleInput").value;
+ difficulty=$("difficultyInput").value;
+
+ $("pName").textContent=n;
+ $("playerLabel").textContent=n;
+ $("aiName").textContent="CPU • "+style;
+ $("enemyLabel").textContent="CPU";
+
+ playerHP=100;enemyHP=100;time=60;running=true;block=false;
+ playerX=22;playerY=0;vy=0;jumping=false;
+ enemyX=68;enemyY=0;enemyVy=0;enemyJumping=false;
+ aiTimer=0;lastCpuAttack=0;lastAttack=0;
+
+ syncPlayer();syncEnemy();update();
+ $("menu").classList.add("hidden");
+ show("FIGHT!");
+
+ clearInterval(window.gameTimer);
+ window.gameTimer=setInterval(()=>{
+  if(running){
+   time--;update();
+   if(time<=0)endGame();
+  }
+ },1000);
+}
+$("start").onclick=startGame;
+
+function distance(){
+ const a=$("player").getBoundingClientRect();
+ const b=$("enemy").getBoundingClientRect();
+ return Math.abs((a.left+a.width/2)-(b.left+b.width/2));
+}
+
+function attack(kind){
+ if(!running||Date.now()-lastAttack<260)return;
+ lastAttack=Date.now();
+
+ sound(kind==="kick"?220:kind==="special"?90:440,.12,
+       kind==="special"?"sawtooth":"square");
+
+ const p=$("player");
+ p.classList.add("hit");
+ setTimeout(()=>p.classList.remove("hit"),220);
+
+ if(distance()<190){
+  let dmg=kind==="punch"?7:kind==="kick"?10:18;
+  if(Math.random()<.12)dmg+=7;
+  enemyHP=Math.max(0,enemyHP-dmg);
+  show(kind==="special"?"SPECIAL!":"HIT!");
+  update();
+  if(enemyHP<=0)endGame(true);
+ }else{
+  show("MISS!");
+ }
+}
+
+function move(dir){
+ if(!running)return;
+ playerX=Math.max(3,Math.min(78,playerX+dir*2.8));
+ syncPlayer();
+}
+
+function jump(){
+ if(!running||jumping)return;
+ jumping=true;vy=1.65;
+ sound(620,.08,"triangle");
+}
+
+function enemyMove(dir){
+ if(!running)return;
+ enemyX=Math.max(18,Math.min(90,enemyX+dir*1.8));
+ syncEnemy();
+}
+
+function enemyJump(){
+ if(!running||enemyJumping)return;
+ enemyJumping=true;enemyVy=1.55;
+ sound(520,.06,"triangle");
+}
+
+function physics(){
+ if(!running)return;
+
+ if(jumping){
+  playerY+=vy;vy-=.11;
+  if(playerY<=0){
+   playerY=0;vy=0;jumping=false;
+  }
+  syncPlayer();
+ }
+
+ if(enemyJumping){
+  enemyY+=enemyVy;enemyVy-=.105;
+  if(enemyY<=0){
+   enemyY=0;enemyVy=0;enemyJumping=false;
+  }
+  syncEnemy();
+ }
+}
+
+function hold(id,dir){
+ const b=$(id);let iv=null;
+ const stop=()=>{if(iv){clearInterval(iv);iv=null}};
+ b.addEventListener("pointerdown",e=>{
+  e.preventDefault();move(dir);stop();
+  iv=setInterval(()=>move(dir),30);
+ });
+ ["pointerup","pointercancel","pointerleave"].forEach(ev=>b.addEventListener(ev,stop));
+}
+
+hold("left",-1);hold("right",1);
+$("punch").onclick=()=>attack("punch");
+$("kick").onclick=()=>attack("kick");
+$("special").onclick=()=>attack("special");
+$("jump").onclick=jump;
+
+setInterval(physics,16);
+
+$("block").addEventListener("pointerdown",()=>block=true);
+["pointerup","pointercancel","pointerleave"].forEach(e=>
+ $("block").addEventListener(e,()=>block=false)
+);
+
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowLeft")move(-1);
+ if(e.key==="ArrowRight")move(1);
+ if(e.key==="ArrowUp"||e.key.toLowerCase()==="w")jump();
+ if(e.key.toLowerCase()==="a")attack("punch");
+ if(e.key.toLowerCase()==="s")attack("kick");
+ if(e.key.toLowerCase()==="d")attack("special");
+ if(e.key===" ")block=true;
+});
+document.addEventListener("keyup",e=>{
+ if(e.key===" ")block=false;
+});
+
+function cpuSettings(){
+ if(difficulty==="easy"){
+  return {speed:.85,attackChance:.055,jumpChance:.006,blockChance:.08,cooldown:950};
+ }
+ if(difficulty==="hard"){
+  return {speed:2.15,attackChance:.18,jumpChance:.035,blockChance:.20,cooldown:430};
+ }
+ return {speed:1.45,attackChance:.11,jumpChance:.018,blockChance:.13,cooldown:650};
+}
+
+function cpuAttack(){
+ if(!running)return;
+ const now=Date.now(),s=cpuSettings();
+ if(now-lastCpuAttack<s.cooldown)return;
+
+ lastCpuAttack=now;
+ const kind=Math.random()<.48?"punch":Math.random()<.78?"kick":"special";
+ let dmg=kind==="punch"?6:kind==="kick"?9:15;
+
+ if(Math.random()<s.blockChance && !jumping){
+  show("CPU BLOCK");
+  return;
+ }
+
+ if(block)dmg=Math.ceil(dmg*.25);
+ if(jumping)dmg=Math.ceil(dmg*.65);
+
+ playerHP=Math.max(0,playerHP-dmg);
+ $("player").classList.add("hit");
+ setTimeout(()=>$("player").classList.remove("hit"),220);
+ sound(150,.1,"sawtooth");
+ show(kind==="special"?"CPU SPECIAL!":"CPU HIT!");
+ update();
+
+ if(playerHP<=0)endGame(false);
+}
+
+function ai(){
+ if(!running)return;
+ aiTimer++;
+ const s=cpuSettings();
+ const dx=playerX-enemyX;
+ const dist=Math.abs(dx);
+
+ // CPU aktif bergerak mendekati pemain, bukan diam.
+ if(dist>105){
+  enemyMove(dx>0?s.speed:-s.speed);
+ }else if(dist<55){
+  // Jaga jarak sedikit agar CPU tidak menempel terus.
+  enemyMove(dx>0?-s.speed*.45:s.speed*.45);
+ }
+
+ // CPU kadang mengejar dengan lompatan.
+ if(Math.random()<s.jumpChance && !enemyJumping){
+  enemyJump();
+ }
+
+ // CPU menyerang saat sudah cukup dekat.
+ if(dist<190 && Math.random()<s.attackChance){
+  cpuAttack();
+ }
+}
+setInterval(ai,80);
+
+function endGame(playerWon=false){
+ if(!running)return;
+ running=false;
+ clearInterval(window.gameTimer);
+
+ let text;
+ if(time<=0){
+  text=playerHP>enemyHP?"TIME! YOU WIN":"TIME! CPU WINS";
+ }else{
+  text=playerWon?"YOU WIN! 🔥":"CPU WINS!";
+ }
+ show(text);
+
+ setTimeout(()=>{
+  $("menu").classList.remove("hidden");
+  $("start").textContent="MAIN LAGI";
+ },1100);
+}
+</script>
+</div>
+</body>
+</html>
